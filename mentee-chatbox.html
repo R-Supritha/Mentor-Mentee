@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorMeet - Chatbox</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="styles.css"/>
+    <style>
+        /* Chat Container */
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Box */
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+
+        .mentor {
+            background-color: #4a90e2;
+            color: white;
+            align-self: flex-start;
+        }
+
+        .mentee {
+            background-color: #ffb347;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chat-input {
+            display: flex;
+            margin-top: 10px;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .chat-input button {
+            padding: 12px 18px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar for Email & Suggestions -->
+    <div class="top-bar">
+      Contact us: <a href="mailto:support@nedaca.com" style="color: #ff9e00;">support@nedaca.com</a> | Suggestions: <a href="https://forms.gle/Td57hPSbGPcBStge6" style="color: #ff9e00;">dropsuggestions</a>
+    </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">NEDACA</div>
+    <ul>
+      <li><a href="mentee-home.html">Home</a></li>
+      <li><a href="mentee-aboutmentor.html">About Mentor</a></li>
+      <li><a href="mentee-aboutmentee.html">About Mentee</a></li>
+      <li><a href="mentee-meeting.html">Mentor Meet</a></li>
+      <li><a href="mentee-chatbox.html">Chatbox</a></li>
+      <li><a href="mentee-tasks.html">Tasks</a></li>
+    </ul>
+  </nav>
+
+
+    <div class="chat-container">
+    <h2>Chatbox</h2>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="chat-input">
+        <input type="text" id="chat-message" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+    <div class="quote-section">
+        <p>"The best way to predict the future is to create it."</p>
+        <div class="quote-author">— Peter Drucker</div>
+    </div>
+
+    <div class="footer">
+        © 2025 NEDACA. All Rights Reserved.
+    </div>
+
+    <script>
+    window.onload = function() {
+            fetchMessages();
+        };
+
+        function fetchMessages() {
+            fetch('/getMessages')
+                .then(response => response.text())  // Expecting HTML as a response
+                .then(messagesHTML => {
+                    const chatBox = document.getElementById("chat-box");
+                    chatBox.innerHTML = messagesHTML; // Insert the raw HTML into the chat box
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                })
+                .catch(error => {
+                    console.error("Error fetching messages:", error);
+                });
+        }
+
+        function sendMessage() {
+    const message = document.getElementById("chat-message").value;
+    if (message.trim() === "") return;
+
+    const chatBox = document.getElementById("chat-box");
+    const newMessage = document.createElement("div");
+    newMessage.classList.add("message", "mentee");
+    newMessage.innerText = "You: " + message;
+
+    chatBox.appendChild(newMessage);
+    document.getElementById("chat-message").value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Prepare the CSV data (one message per line)
+    const csvData = `"${message}","mentee"\n`;  // CSV format: "message","sender"
+
+    fetch('/sendMessage', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/csv'
+        },
+        body: csvData
+    })
+    .then(response => {
+        if (response.ok) {
+            fetchMessages(); // Refresh messages after sending
+        } else {
+            console.error('Failed to send message');
+        }
+    })
+    .catch(error => console.error("Error sending message:", error));
+}
+
+    </script>
+</body>
+</html>
